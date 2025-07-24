@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "youtube-extract-mlx": {
+      "command": "/Users/REPLACE_WITH_YOUR_USERNAME/.local/bin/uv",
+      "args": [
+        "--directory",
+        "/Users/REPLACE_WITH_YOUR_USERNAME/path/to/youtube-extract-mcp-mlx",
+        "run",
+        "youtube_extract_mcp.py"
+      ],
+      "env": {
+        "PATH": "/Users/REPLACE_WITH_YOUR_USERNAME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    }
+  }
+}
