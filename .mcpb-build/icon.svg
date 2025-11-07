@@ -1,0 +1,21 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="128" height="128" rx="20" fill="#FF0000"/>
+
+  <!-- YouTube Play Button Style -->
+  <circle cx="64" cy="64" r="48" fill="white" opacity="0.95"/>
+
+  <!-- Play Triangle -->
+  <path d="M 54 44 L 54 84 L 84 64 Z" fill="#FF0000"/>
+
+  <!-- Document/Transcript Icon -->
+  <g transform="translate(85, 85)">
+    <rect x="0" y="0" width="36" height="36" rx="4" fill="white" stroke="#333" stroke-width="2"/>
+    <line x1="6" y1="10" x2="30" y2="10" stroke="#333" stroke-width="2"/>
+    <line x1="6" y1="18" x2="30" y2="18" stroke="#333" stroke-width="2"/>
+    <line x1="6" y1="26" x2="24" y2="26" stroke="#333" stroke-width="2"/>
+  </g>
+
+  <!-- Arrow connecting play to document -->
+  <path d="M 95 75 L 85 85" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

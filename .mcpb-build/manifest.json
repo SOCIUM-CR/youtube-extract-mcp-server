@@ -1,0 +1,44 @@
+{
+  "manifest_version": "0.3",
+  "name": "youtube-extract-mcp",
+  "display_name": "YouTube Transcript Extractor",
+  "version": "1.0.0",
+  "description": "Robust YouTube transcription extraction with triple-fallback system. Supports videos and playlists with automatic language detection.",
+  "author": {
+    "name": "SOCIUM-CR",
+    "email": "contact@socium.cr",
+    "url": "https://github.com/SOCIUM-CR"
+  },
+  "homepage": "https://github.com/SOCIUM-CR/youtube-extract-mcp-server",
+  "license": "MIT",
+  "icon": "icon.png",
+  "keywords": ["youtube", "transcription", "transcript", "video", "subtitles", "captions", "playlist"],
+
+  "server": {
+    "type": "python",
+    "entry_point": "${__dirname}/server/youtube_extract_mcp.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "${__dirname}/server",
+        "run",
+        "youtube_extract_mcp.py"
+      ],
+      "env": {
+        "YOUTUBE_EXTRACT_OUTPUT_DIR": "${user_config.output_directory}",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  },
+
+  "user_config": {
+    "output_directory": {
+      "type": "string",
+      "title": "Output Directory",
+      "description": "Local directory where transcriptions will be saved",
+      "default": "${HOME}/YouTube-Transcripts",
+      "required": false
+    }
+  }
+}
