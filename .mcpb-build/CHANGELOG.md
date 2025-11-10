@@ -13,6 +13,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTP transport option for multi-client support
 - Remote deployment option
 
+## [1.0.1] - 2025-11-10
+
+### Fixed
+- **Critical**: Fixed "spawn uv ENOENT" error on macOS/Linux
+  - Added wrapper script (`run.sh`) that auto-detects `uv` location
+  - Searches common installation paths: Homebrew, Cargo, .local/bin
+  - Falls back to Python venv if `uv` not found
+  - Added comprehensive PATH environment variable for macOS GUI apps
+- Improved first-run experience with automatic dependency installation
+
+### Changed
+- Server command changed from direct `uv` call to `/bin/bash` wrapper
+- Added fallback mechanism for systems without `uv` installed
+- Enhanced compatibility across different macOS/Linux configurations
+
+### Technical
+- New file: `server/run.sh` - Smart launcher with uv auto-detection
+- PATH includes: `/usr/local/bin`, `/opt/homebrew/bin`, `~/.local/bin`, `~/.cargo/bin`
+- Automatic venv creation and dependency installation on first run
+
 ## [1.0.0] - 2025-11-07
 
 ### Added
