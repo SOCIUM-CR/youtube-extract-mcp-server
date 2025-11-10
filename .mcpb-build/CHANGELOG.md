@@ -13,6 +13,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTP transport option for multi-client support
 - Remote deployment option
 
+## [1.0.2] - 2025-11-10
+
+### Fixed
+- **CRITICAL**: Fixed transcription extraction failure
+  - Corrected `youtube-transcript-api` version from non-existent `>=1.1.1` to `>=0.6.0`
+  - Corrected `yt-dlp` version from future `>=2025.6.30` to `>=2024.4.9`
+  - Error was: `type object 'YouTubeTranscriptApi' has no attribute 'list_transcripts'`
+  - Now triple-fallback system works correctly:
+    1. yt-dlp with PO Token bypass ✅
+    2. yt-dlp with alternative clients ✅
+    3. youtube-transcript-api (fixed) ✅
+
+### Technical
+- Updated PEP 723 dependency specifications to valid package versions
+- Updated run.sh fallback pip install with correct versions
+- Metadata extraction was already working, now transcriptions work too
+
+### Impact
+- **Before**: Only metadata extraction worked, transcriptions failed with error
+- **After**: Full functionality restored - both metadata and transcriptions work
+
 ## [1.0.1] - 2025-11-10
 
 ### Fixed

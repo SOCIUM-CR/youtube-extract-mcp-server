@@ -3,8 +3,8 @@
 # requires-python = ">=3.11"
 # dependencies = [
 #     "mcp>=1.0.0",
-#     "yt-dlp>=2025.6.30",
-#     "youtube-transcript-api>=1.1.1",
+#     "yt-dlp>=2024.4.9",
+#     "youtube-transcript-api>=0.6.0",
 # ]
 # ///
 """
