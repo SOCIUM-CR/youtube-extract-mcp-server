@@ -13,6 +13,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTP transport option for multi-client support
 - Remote deployment option
 
+## [1.0.3] - 2025-11-10
+
+### Fixed
+- **CRITICAL**: Fixed incorrect API method name in fallback system
+  - Changed `YouTubeTranscriptApi.list_transcripts()` to `YouTubeTranscriptApi.list()`
+  - The method `list_transcripts()` does NOT exist in youtube-transcript-api
+  - Correct method is `list()` as per official API documentation
+  - This was the ACTUAL cause of: `type object 'YouTubeTranscriptApi' has no attribute 'list_transcripts'`
+
+### Root Cause Analysis
+- v1.0.2 fixed dependency versions (correct) ✅
+- But the code was calling a non-existent method ❌
+- Line 636: `YouTubeTranscriptApi.list_transcripts(video_id)` (WRONG)
+- Fixed: `YouTubeTranscriptApi.list(video_id)` (CORRECT)
+
+### Verified Against Official API
+- Source: https://github.com/jdepoix/youtube-transcript-api
+- YouTubeTranscriptApi class has `list()` method, not `list_transcripts()`
+- Returns TranscriptList object with `find_manually_created_transcript()` and `find_generated_transcript()` methods (these are correct in our code)
+
+### Impact
+- **v1.0.2**: Dependencies fixed, but API call still wrong → transcriptions still failed
+- **v1.0.3**: API call corrected → transcriptions should now work
+
 ## [1.0.2] - 2025-11-10
 
 ### Fixed

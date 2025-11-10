@@ -633,7 +633,7 @@ class YouTubeExtractMCP:
                 raise ValueError("Could not extract video ID from URL")
             
             logger.info(f"🔄 Trying fallback method: youtube-transcript-api for video {video_id}")
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            transcript_list = YouTubeTranscriptApi.list(video_id)
             
             # Language priority similar to main method
             if language in ["es", "en", "fr", "de", "it", "pt", "ja", "ko", "zh", "ru"]:
