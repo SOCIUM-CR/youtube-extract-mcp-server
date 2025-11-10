@@ -32,7 +32,7 @@ if [ ! -d "$VENV_DIR" ]; then
     echo "First-time setup: Creating virtual environment..." >&2
     python3 -m venv "$VENV_DIR"
     "$VENV_DIR/bin/pip" install --quiet --upgrade pip
-    "$VENV_DIR/bin/pip" install --quiet "mcp>=1.0.0" "yt-dlp>=2024.4.9" "youtube-transcript-api>=0.6.0"
+    "$VENV_DIR/bin/pip" install --quiet "mcp>=1.0.0" "yt-dlp>=2024.4.9" "youtube-transcript-api>=1.2.3"
     echo "Setup complete!" >&2
 fi
 

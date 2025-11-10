@@ -13,6 +13,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTP transport option for multi-client support
 - Remote deployment option
 
+## [1.0.4] - 2025-11-10
+
+### Fixed
+- **CRITICAL**: Fixed class method vs instance method usage
+  - Error: `YouTubeTranscriptApi.list() missing 1 required positional argument: 'video_id'`
+  - Root cause: `list()` is an INSTANCE method, not a class method
+  - Changed from: `YouTubeTranscriptApi.list(video_id)` (calling as class method)
+  - Changed to: `ytt_api = YouTubeTranscriptApi()` then `ytt_api.list(video_id)` (instance method)
+
+- Updated youtube-transcript-api to latest version
+  - Previous: `>=0.6.0` (older API)
+  - New: `>=1.2.3` (latest, released October 2025)
+  - This version has the modern instance-based API
+
+### Root Cause Analysis - Complete Timeline
+
+| Version | Dependency Version | API Call | Error |
+|---------|-------------------|----------|-------|
+| v1.0.0-1.0.1 | ❌ Wrong (1.1.1) | ❌ `list_transcripts()` | `has no attribute 'list_transcripts'` |
+| v1.0.2 | ✅ Fixed (0.6.0) | ❌ `list_transcripts()` → `list()` | Still `has no attribute 'list_transcripts'` |
+| v1.0.3 | ✅ Fixed (0.6.0) | ⚠️ `YouTubeTranscriptApi.list()` (class) | `missing 1 required positional argument` |
+| **v1.0.4** | **✅ Latest (1.2.3)** | **✅ Instance method** | **Should work** |
+
+### Technical Details
+- Line 636-638: Added instance creation before calling list()
+- Updated PEP 723 dependencies to youtube-transcript-api>=1.2.3
+- Updated run.sh fallback with new version
+
+### Verified Against
+- PyPI: https://pypi.org/project/youtube-transcript-api/ (v1.2.3)
+- Official docs show instance-based usage pattern
+
 ## [1.0.3] - 2025-11-10
 
 ### Fixed

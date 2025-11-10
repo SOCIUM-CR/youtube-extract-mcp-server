@@ -4,7 +4,7 @@
 # dependencies = [
 #     "mcp>=1.0.0",
 #     "yt-dlp>=2024.4.9",
-#     "youtube-transcript-api>=0.6.0",
+#     "youtube-transcript-api>=1.2.3",
 # ]
 # ///
 """
@@ -633,7 +633,9 @@ class YouTubeExtractMCP:
                 raise ValueError("Could not extract video ID from URL")
             
             logger.info(f"🔄 Trying fallback method: youtube-transcript-api for video {video_id}")
-            transcript_list = YouTubeTranscriptApi.list(video_id)
+            # Create instance first - list() is an instance method, not a class method
+            ytt_api = YouTubeTranscriptApi()
+            transcript_list = ytt_api.list(video_id)
             
             # Language priority similar to main method
             if language in ["es", "en", "fr", "de", "it", "pt", "ja", "ko", "zh", "ru"]:
