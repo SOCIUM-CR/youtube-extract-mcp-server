@@ -13,6 +13,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTP transport option for multi-client support
 - Remote deployment option
 
+## [1.0.6] - 2025-11-27
+
+### Fixed
+- **Windows**: Comprehensive Python PATH configuration documentation and detection
+  - Error on Windows v1.0.5: `Server disconnected` - Python command not found
+  - Root cause: Windows Python not in PATH or not installed correctly
+  - This is an environment issue (Windows configuration), not a code bug
+
+### Added
+- **WINDOWS_INSTALL.md**: Comprehensive 250-line Windows installation guide
+  - Step-by-step Python installation with "Add Python to PATH" emphasis
+  - PowerShell verification commands (`python --version`)
+  - Troubleshooting for multiple scenarios:
+    - Python not in PATH (Reinstall or manual PATH configuration)
+    - Multiple Python versions installed (`where python`)
+    - Python Launcher (py) vs python command differences
+    - Windows Store Python issues
+    - Antivirus blocking Python/Claude Desktop
+    - Permissions errors
+  - Manual PATH configuration walkthrough
+  - Common error messages and solutions
+  - Checklist before installing extension
+
+- **run.bat**: Windows batch launcher with Python detection fallback
+  - Tries `py -3` (Windows Python Launcher - most reliable)
+  - Falls back to `python3`
+  - Falls back to `python`
+  - Shows helpful error message if no Python found
+  - Directs users to WINDOWS_INSTALL.md for setup help
+
+### Platform Support
+| Platform | v1.0.5 Status | v1.0.6 Status |
+|----------|---------------|---------------|
+| macOS    | ✅ Working    | ✅ Working    |
+| Linux    | ✅ Should work | ✅ Should work |
+| Windows  | ❌ Python PATH required | 📋 Documentation added |
+
+### User Impact
+- **Windows users:** Must install Python 3.11+ with "Add Python to PATH" checked
+  - See WINDOWS_INSTALL.md for complete guide
+  - Extension cannot automatically fix Windows PATH (OS limitation)
+  - Once Python is properly installed, extension will work
+- **macOS users:** No change (continues working)
+- **Linux users:** No change (continues working)
+
+### Important Notes
+This release addresses a **Windows environment configuration issue**, not a code bug:
+- Windows does not come with Python pre-installed
+- Python must be added to Windows PATH during installation
+- The "Add Python to PATH" checkbox must be checked in Python installer
+- Alternative: Use Windows Python Launcher (`py` command)
+- Full troubleshooting guide now included
+
+### Migration
+1. Windows users: Follow WINDOWS_INSTALL.md before installing extension
+2. Existing users: Update to v1.0.6 for documentation access
+
 ## [1.0.5] - 2025-11-10
 
 ### Fixed
