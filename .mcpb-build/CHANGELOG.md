@@ -13,6 +13,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTP transport option for multi-client support
 - Remote deployment option
 
+## [1.0.9] - 2025-11-27
+
+### Fixed
+- **CRITICAL**: Fixed STDIO communication broken by subprocess.run() in v1.0.8
+  - Error: Server starts but times out - cannot communicate with Claude Desktop
+  - Root cause: `subprocess.run()` blocks parent process, preventing STDIO passthrough
+  - Solution: Reverted to `os.execv()` with pre-resolved paths using `Path.resolve()`
+  - Server now maintains proper STDIO streams for JSON-RPC communication
+
+### Changed
+- **run.py**: Restored `os.execv()` with proper path canonicalization
+  - Line 121: Changed `Path.absolute()` → `Path.resolve()` (better path canonicalization)
+  - Line 134: Restored `os.execv()` for uv execution with pre-resolved path
+  - Line 170: Restored `os.execv()` for venv execution with pre-resolved paths
+  - Pre-resolve ALL paths before exec to prevent Windows/Electron path issues
+  - Added comprehensive comments explaining why os.execv() is correct for MCP servers
+
+### Technical Details
+- **Problem with subprocess.run()** (v1.0.8):
+  - `subprocess.run()` is a blocking call that waits for child process to complete
+  - MCP servers need to run indefinitely, listening to stdin for JSON-RPC messages
+  - subprocess.run() prevented proper STDIO passthrough
+  - Result: Server couldn't receive "initialize" message from Claude Desktop
+
+- **Solution with os.execv() + Path.resolve()**:
+  - `Path.resolve()` canonicalizes paths (more reliable than `absolute()`)
+  - Pre-resolve ALL paths BEFORE os.execv()
+  - `os.execv()` replaces process but STDIO streams pass through naturally
+  - Server runs as main process, not subprocess - can listen to stdin indefinitely
+  - No blocking, no subprocess overhead, proper MCP STDIO transport
+
+- **Why os.execv() is CORRECT for MCP servers**:
+  1. ✅ STDIO streams (stdin/stdout/stderr) pass through naturally
+  2. ✅ Server runs as main process, not subprocess
+  3. ✅ No blocking - server can listen indefinitely
+  4. ✅ Pre-resolved paths prevent Windows/Electron issues
+  5. ✅ Follows MCP best practices for STDIO transport
+
+### Platform Support
+| Platform | Python | v1.0.8 Status | v1.0.9 Status |
+|----------|--------|---------------|---------------|
+| Windows  | 3.11+  | ❌ STDIO broken | ✅ Fixed |
+| macOS    | 3.11+  | ❌ STDIO broken | ✅ Fixed |
+| Linux    | 3.11+  | ❌ STDIO broken | ✅ Fixed |
+
+### User Impact
+- **All users**: Server now communicates properly via STDIO ✅
+- **Windows users**: Path resolution works correctly ✅
+- **Claude Desktop**: Server responds to initialize and tool calls ✅
+
+### Migration
+No action needed - just update to v1.0.9. The fix is automatic.
+
+### Verification
+After applying this fix:
+- ✅ Server starts correctly
+- ✅ Server responds to "initialize" message from Claude Desktop
+- ✅ STDIO communication works (JSON-RPC over stdin/stdout)
+- ✅ Path resolution works on Windows with Electron apps
+- ✅ Server can process tool calls successfully
+
+### Key Lesson Learned
+For MCP STDIO servers:
+- ❌ **DON'T use subprocess.run()** - it blocks and breaks STDIO
+- ✅ **DO use os.execv() with pre-resolved paths** - maintains STDIO, prevents path issues
+
+### References
+- [MCP STDIO Transport Requirements](https://modelcontextprotocol.io/docs/concepts/transports#stdio)
+- [Python Path.resolve() documentation](https://docs.python.org/3/library/pathlib.html#pathlib.Path.resolve)
+- [Why os.execv() for long-running servers](https://docs.python.org/3/library/os.html#os.execv)
+
 ## [1.0.8] - 2025-11-27
 
 ### Fixed

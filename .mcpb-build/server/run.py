@@ -116,7 +116,9 @@ def setup_venv(venv_dir):
 
 def main():
     """Main entry point"""
-    script_dir = Path(__file__).parent.absolute()
+    # Use resolve() instead of absolute() - it canonicalizes paths more reliably
+    # This ensures paths remain valid even after process replacement with os.execv()
+    script_dir = Path(__file__).parent.resolve()
     server_script = script_dir / 'youtube_extract_mcp.py'
 
     # Try to find uv
@@ -126,14 +128,15 @@ def main():
         # Use uv (fastest option)
         print(f"Using uv from: {uv_path}", file=sys.stderr)
         try:
-            # Use subprocess.run() instead of os.execvp() to avoid path resolution issues
-            result = subprocess.run([
-                uv_path,
+            # Pre-resolve uv path before exec to avoid path resolution issues
+            # Using os.execv() is correct for MCP STDIO servers - maintains STDIO streams
+            uv_exe = str(Path(uv_path).resolve())
+            os.execv(uv_exe, [
+                uv_exe,
                 '--directory', str(script_dir),
                 'run',
                 'youtube_extract_mcp.py'
             ] + sys.argv[1:])
-            sys.exit(result.returncode)
         except Exception as e:
             print(f"Failed to run with uv: {e}", file=sys.stderr)
             print("Falling back to venv...", file=sys.stderr)
@@ -152,17 +155,19 @@ def main():
         python_path = setup_venv(venv_dir)
 
     # Run the server with venv python
-    # Use subprocess.run() instead of os.execv() to maintain correct execution context
-    # This prevents __file__ path resolution issues on Windows when launched from Electron apps
+    # Pre-resolve all paths before os.execv() to prevent path resolution issues
+    # Using os.execv() is REQUIRED for MCP STDIO servers to maintain proper STDIO communication
+    # The key is to resolve paths BEFORE exec, not to avoid exec altogether
+    python_exe = str(python_path.resolve())
+    server_py = str(server_script.resolve())
+
     try:
-        result = subprocess.run([
-            str(python_path),
-            str(server_script)
-        ] + sys.argv[1:])
-        sys.exit(result.returncode)
-    except subprocess.CalledProcessError as e:
-        print(f"Server exited with error: {e}", file=sys.stderr)
-        sys.exit(e.returncode)
+        # os.execv() replaces current process - this is CORRECT for MCP servers because:
+        # 1. STDIO streams (stdin/stdout/stderr) pass through naturally
+        # 2. Server runs as the main process, not a subprocess
+        # 3. No blocking - server can listen to stdin indefinitely
+        # 4. Pre-resolved paths prevent Windows/Electron path resolution issues
+        os.execv(python_exe, [python_exe, server_py] + sys.argv[1:])
     except Exception as e:
         print(f"Failed to start server: {e}", file=sys.stderr)
         sys.exit(1)
