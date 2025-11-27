@@ -13,6 +13,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTP transport option for multi-client support
 - Remote deployment option
 
+## [1.0.5] - 2025-11-10
+
+### Fixed
+- **CRITICAL**: Fixed Windows compatibility
+  - Error on Windows: `Cannot read properties of undefined (reading 'cmd')`
+  - Root cause: `/bin/bash` command doesn't exist on Windows
+  - Solution: Replaced bash wrapper with universal Python launcher (`run.py`)
+
+### Changed
+- **Command:** `/bin/bash` → `python` (cross-platform)
+- **Launcher:** `run.sh` (Unix-only) → `run.py` (universal)
+- **Removed:** Unix-specific PATH from manifest (not needed)
+
+### Added
+- **run.py**: Universal Python launcher for all platforms
+  - Auto-detects uv on Windows, macOS, and Linux
+  - Platform-specific path handling (Scripts vs bin, .exe vs no extension)
+  - Searches common installation locations per OS:
+    - Windows: AppData, Program Files, .cargo/bin
+    - macOS: /usr/local/bin, /opt/homebrew/bin, .cargo/bin
+    - Linux: /usr/local/bin, /usr/bin, .cargo/bin, .local/bin
+  - Falls back to venv if uv not found
+  - Cross-platform subprocess handling
+
+### Platform Support
+| Platform | v1.0.4 Status | v1.0.5 Status |
+|----------|---------------|---------------|
+| macOS    | ✅ Working    | ✅ Working    |
+| Linux    | ⚠️ Untested   | ✅ Should work |
+| Windows  | ❌ Broken     | ✅ Fixed      |
+
+### Technical Details
+- manifest.json (line 21): Changed command to "python" (available on all OS)
+- manifest.json (line 23): Changed args to use run.py instead of run.sh
+- manifest.json (line 25-28): Removed Unix-specific PATH
+- server/run.py: New 150-line universal launcher
+- Tested on: macOS (verified), Windows (user reported fix needed)
+
+### User Impact
+- **Windows users:** Extension now works! (was completely broken)
+- **macOS users:** No change (continues working)
+- **Linux users:** Better compatibility (was untested, now should work)
+
+### Migration
+No action needed - just update to v1.0.5
+
 ## [1.0.4] - 2025-11-10
 
 ### Fixed

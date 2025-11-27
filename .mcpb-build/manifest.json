@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "youtube-extract-mcp",
   "display_name": "YouTube Transcript Extractor",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Robust YouTube transcription extraction with triple-fallback system. Supports videos and playlists with automatic language detection.",
   "author": {
     "name": "SOCIUM-CR",
@@ -18,14 +18,13 @@
     "type": "python",
     "entry_point": "${__dirname}/server/youtube_extract_mcp.py",
     "mcp_config": {
-      "command": "/bin/bash",
+      "command": "python",
       "args": [
-        "${__dirname}/server/run.sh"
+        "${__dirname}/server/run.py"
       ],
       "env": {
         "YOUTUBE_EXTRACT_OUTPUT_DIR": "${user_config.output_directory}",
-        "PYTHONUNBUFFERED": "1",
-        "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:${HOME}/.local/bin:${HOME}/.cargo/bin"
+        "PYTHONUNBUFFERED": "1"
       }
     }
   },
