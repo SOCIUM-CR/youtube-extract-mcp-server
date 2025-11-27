@@ -13,6 +13,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTP transport option for multi-client support
 - Remote deployment option
 
+## [1.0.7] - 2025-11-27
+
+### Fixed
+- **CRITICAL**: Fixed Python 3.13+ compatibility in run.py
+  - Error on Windows with Python 3.13+: `subprocess.CalledProcessError: Command '['pip.exe', 'install', '--upgrade', 'pip']' returned non-zero exit status 1`
+  - Root cause: Python 3.13+ prevents pip.exe from modifying itself when called directly
+  - Solution: Changed all pip calls to use `python -m pip` instead of direct pip.exe execution
+  - Affects lines 100 and 103-112 in run.py
+
+### Changed
+- **run.py**: Updated pip invocation method for Python 3.13+ security requirements
+  - Line 100: `pip install --upgrade pip` → `python -m pip install --upgrade pip`
+  - Lines 103-112: All dependency installations now use `python -m pip`
+  - Removed unused `pip_path` variable (lines 91-95)
+  - Added compatibility comments explaining the change
+
+### Platform Support
+| Platform | Python Version | v1.0.6 Status | v1.0.7 Status |
+|----------|----------------|---------------|---------------|
+| Windows  | 3.11-3.12      | ✅ Working    | ✅ Working    |
+| Windows  | 3.13+          | ❌ Broken     | ✅ Fixed      |
+| macOS    | 3.11+          | ✅ Working    | ✅ Working    |
+| Linux    | 3.11+          | ✅ Working    | ✅ Working    |
+
+### Technical Details
+- Python 3.13 introduced security restrictions preventing pip from self-modification
+- Old method: `C:\...\Scripts\pip.exe install --upgrade pip` (FAILS in 3.13+)
+- New method: `C:\...\Scripts\python.exe -m pip install --upgrade pip` (WORKS in all versions)
+- This is the official recommended method per Python documentation
+- Backwards compatible with Python 3.11 and 3.12
+
+### User Impact
+- **Windows + Python 3.13+ users**: Extension now works! (was completely broken)
+- **Windows + Python 3.12 or earlier**: No change (continues working)
+- **macOS/Linux users**: No change (continues working)
+- **New Windows users**: Can now install latest Python 3.13 without issues
+
+### Migration
+No action needed - just update to v1.0.7. The fix is automatic.
+
+### Verification
+After applying this fix, the server:
+- Creates virtual environment without errors ✅
+- Updates pip successfully ✅
+- Installs all dependencies (mcp, yt-dlp, youtube-transcript-api) ✅
+- Starts correctly and accepts connections ✅
+- Extracts transcriptions successfully ✅
+
 ## [1.0.6] - 2025-11-27
 
 ### Fixed
