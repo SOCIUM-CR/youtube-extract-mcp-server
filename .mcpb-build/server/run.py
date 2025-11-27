@@ -126,12 +126,14 @@ def main():
         # Use uv (fastest option)
         print(f"Using uv from: {uv_path}", file=sys.stderr)
         try:
-            os.execvp(uv_path, [
+            # Use subprocess.run() instead of os.execvp() to avoid path resolution issues
+            result = subprocess.run([
                 uv_path,
                 '--directory', str(script_dir),
                 'run',
                 'youtube_extract_mcp.py'
             ] + sys.argv[1:])
+            sys.exit(result.returncode)
         except Exception as e:
             print(f"Failed to run with uv: {e}", file=sys.stderr)
             print("Falling back to venv...", file=sys.stderr)
@@ -150,11 +152,17 @@ def main():
         python_path = setup_venv(venv_dir)
 
     # Run the server with venv python
+    # Use subprocess.run() instead of os.execv() to maintain correct execution context
+    # This prevents __file__ path resolution issues on Windows when launched from Electron apps
     try:
-        os.execv(str(python_path), [
+        result = subprocess.run([
             str(python_path),
             str(server_script)
         ] + sys.argv[1:])
+        sys.exit(result.returncode)
+    except subprocess.CalledProcessError as e:
+        print(f"Server exited with error: {e}", file=sys.stderr)
+        sys.exit(e.returncode)
     except Exception as e:
         print(f"Failed to start server: {e}", file=sys.stderr)
         sys.exit(1)
