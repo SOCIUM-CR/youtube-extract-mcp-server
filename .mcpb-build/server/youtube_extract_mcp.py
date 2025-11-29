@@ -409,16 +409,18 @@ class YouTubeExtractMCP:
                 sys.executable, '-m', 'yt_dlp',
                 '--dump-json',
                 '--no-download',
+                '--extractor-args', 'youtube:player_client=android',
                 url
             ]
-            
+
             logger.info("📊 Extracting metadata with yt-dlp")
             # Apply 60s timeout to prevent hanging on unavailable videos
             result = await asyncio.wait_for(
                 asyncio.create_subprocess_exec(
                     *cmd,
                     stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
+                    stderr=asyncio.subprocess.PIPE,
+                    env=os.environ.copy()
                 ),
                 timeout=60.0
             )
@@ -501,19 +503,19 @@ class YouTubeExtractMCP:
                 '--write-sub',
                 '--skip-download',
                 '--sub-lang', ','.join(language_options),
-                '--extractor-args', 'youtube:formats=missing_pot',  # Bypass PO Token
-                '--extractor-args', 'youtube:player_client=web,web_safari',  # Múltiples clientes
+                '--extractor-args', 'youtube:player_client=android',
                 '--output', str(temp_output_dir / '%(title)s.%(ext)s'),
                 url
             ]
-            
+
             logger.info(f"📝 Extracting transcription (languages: {language_options})")
             # Apply 90s timeout to prevent hanging on unavailable videos
             result = await asyncio.wait_for(
                 asyncio.create_subprocess_exec(
                     *cmd,
                     stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
+                    stderr=asyncio.subprocess.PIPE,
+                    env=os.environ.copy()
                 ),
                 timeout=90.0
             )
@@ -535,26 +537,26 @@ class YouTubeExtractMCP:
                     logger.warning(f"⚠️ PO Token error detected: {stderr_text[:200]}...")
                     logger.info("🔄 Trying alternative yt-dlp configuration...")
                     
-                    # Try alternative configuration with different clients
+                    # Try alternative configuration with iOS client
                     cmd_alt = [
                         sys.executable, '-m', 'yt_dlp',
                         '--write-auto-sub',
                         '--write-sub',
                         '--skip-download',
                         '--sub-lang', ','.join(language_options),
-                        '--extractor-args', 'youtube:formats=missing_pot',
-                        '--extractor-args', 'youtube:player_client=android,web_embedded',
+                        '--extractor-args', 'youtube:player_client=ios',
                         '--output', str(temp_output_dir / '%(title)s.%(ext)s'),
                         url
                     ]
-                    
+
                     try:
                         # Apply 90s timeout to alternative configuration
                         result_alt = await asyncio.wait_for(
                             asyncio.create_subprocess_exec(
                                 *cmd_alt,
                                 stdout=asyncio.subprocess.PIPE,
-                                stderr=asyncio.subprocess.PIPE
+                                stderr=asyncio.subprocess.PIPE,
+                                env=os.environ.copy()
                             ),
                             timeout=90.0
                         )

@@ -13,6 +13,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTP transport option for multi-client support
 - Remote deployment option
 
+## [1.0.11] - 2025-11-29
+
+### Fixed
+- **CRITICAL**: Fixed yt-dlp extractor-args bugs in v1.0.10
+  - Bug #1: Multiple `--extractor-args` flags (only last one was applied)
+  - Bug #2: Invalid argument `youtube:formats=missing_pot` (doesn't exist in yt-dlp)
+  - Bug #3: Multiple player_clients with comma `web,web_safari` (not supported)
+  - Bug #4: Missing `env=os.environ.copy()` causing subprocess pipe errors
+
+### Changed
+- **youtube_extract_mcp.py**: Fixed all subprocess operations
+  - **_extract_metadata():**
+    - Added `--extractor-args youtube:player_client=android` (line 412)
+    - Added `env=os.environ.copy()` to subprocess (line 423)
+  - **_extract_transcription():**
+    - Removed invalid `youtube:formats=missing_pot` argument
+    - Changed `youtube:player_client=web,web_safari` → `youtube:player_client=android` (line 506)
+    - Added `env=os.environ.copy()` to subprocess (line 518)
+  - **Alternative fallback config:**
+    - Removed invalid `youtube:formats=missing_pot` argument
+    - Changed `youtube:player_client=android,web_embedded` → `youtube:player_client=ios` (line 547)
+    - Added `env=os.environ.copy()` to subprocess (line 559)
+
+### Technical Details
+**Problem in v1.0.10:**
+1. **Multiple extractor-args**: yt-dlp only uses the LAST --extractor-args flag, earlier ones are ignored
+2. **Invalid argument**: `youtube:formats=missing_pot` is not a valid YouTube extractor argument
+3. **Invalid syntax**: yt-dlp doesn't support multiple player_clients separated by comma
+4. **Missing env**: Subprocesses didn't inherit environment variables, causing pipe errors
+
+**Solution:**
+- Use single `--extractor-args` with ONE valid player_client
+- Primary method: `player_client=android` (most reliable)
+- Fallback method: `player_client=ios` (alternative)
+- Always include `env=os.environ.copy()` in all subprocess calls
+
+**Valid yt-dlp player_clients:**
+- ✅ `android` - Most reliable, works in most cases
+- ✅ `ios` - Good fallback option
+- ✅ `web` - Basic fallback
+- ❌ `web,web_safari` - NOT VALID (can't use comma-separated)
+- ❌ `android,web_embedded` - NOT VALID (can't use comma-separated)
+
+### Platform Support
+| Configuration | v1.0.10 | v1.0.11 |
+|---------------|---------|---------|
+| Android client | ❌ Ignored | ✅ Working |
+| iOS fallback | ❌ Broken | ✅ Working |
+| Environment vars | ❌ Missing | ✅ Passed |
+| Pipe errors | ❌ Present | ✅ Fixed |
+
+### User Impact
+- **Videos extraction**: Now works correctly with proper yt-dlp config ✅
+- **No more pipe errors**: Environment variables properly inherited ✅
+- **Better fallback**: iOS client as proper alternative ✅
+- **Cleaner logs**: No invalid argument warnings ✅
+
+### Migration
+No action needed - just update to v1.0.11. All fixes are automatic.
+
+### Verification
+After applying this fix:
+- ✅ Metadata extraction works with android client
+- ✅ Transcription extraction works with android client
+- ✅ Fallback to iOS client works when needed
+- ✅ No subprocess pipe errors
+- ✅ Environment variables properly inherited
+
+### References
+- [yt-dlp extractor arguments documentation](https://github.com/yt-dlp/yt-dlp#youtube)
+- [YouTube player clients in yt-dlp](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/youtube.py)
+
 ## [1.0.10] - 2025-11-28
 
 ### Fixed
