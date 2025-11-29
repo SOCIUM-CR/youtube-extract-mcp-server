@@ -413,16 +413,28 @@ class YouTubeExtractMCP:
             ]
             
             logger.info("📊 Extracting metadata with yt-dlp")
-            result = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+            # Apply 60s timeout to prevent hanging on unavailable videos
+            result = await asyncio.wait_for(
+                asyncio.create_subprocess_exec(
+                    *cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                ),
+                timeout=60.0
             )
-            
-            stdout, stderr = await result.communicate()
-            
+
+            # Apply 60s timeout to communication
+            stdout, stderr = await asyncio.wait_for(
+                result.communicate(),
+                timeout=60.0
+            )
+
             if result.returncode != 0:
-                raise RuntimeError(f"yt-dlp metadata extraction failed: {stderr.decode()}")
+                stderr_text = stderr.decode()
+                # Detect specific unavailable video errors
+                if "Video unavailable" in stderr_text or "Private video" in stderr_text:
+                    raise RuntimeError(f"Video is not accessible: {stderr_text[:200]}")
+                raise RuntimeError(f"yt-dlp metadata extraction failed: {stderr_text[:500]}")
             
             metadata = json.loads(stdout.decode())
             
@@ -445,6 +457,13 @@ class YouTubeExtractMCP:
                 "detected_from": "yt-dlp metadata analysis"
             }
             
+        except asyncio.TimeoutError:
+            error_msg = "Metadata extraction timed out after 60 seconds. Video may be unavailable, geo-restricted, or too slow to respond."
+            logger.error(error_msg)
+            return {
+                "title": "Metadata extraction timed out",
+                "error": error_msg
+            }
         except Exception as e:
             logger.warning(f"Metadata extraction failed: {e}")
             return {
@@ -489,13 +508,21 @@ class YouTubeExtractMCP:
             ]
             
             logger.info(f"📝 Extracting transcription (languages: {language_options})")
-            result = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+            # Apply 90s timeout to prevent hanging on unavailable videos
+            result = await asyncio.wait_for(
+                asyncio.create_subprocess_exec(
+                    *cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                ),
+                timeout=90.0
             )
-            
-            stdout, stderr = await result.communicate()
+
+            # Apply 90s timeout to communication
+            stdout, stderr = await asyncio.wait_for(
+                result.communicate(),
+                timeout=90.0
+            )
             
             # Check if yt-dlp succeeded or try alternatives
             yt_dlp_success = result.returncode == 0
@@ -522,13 +549,20 @@ class YouTubeExtractMCP:
                     ]
                     
                     try:
-                        result_alt = await asyncio.create_subprocess_exec(
-                            *cmd_alt,
-                            stdout=asyncio.subprocess.PIPE,
-                            stderr=asyncio.subprocess.PIPE
+                        # Apply 90s timeout to alternative configuration
+                        result_alt = await asyncio.wait_for(
+                            asyncio.create_subprocess_exec(
+                                *cmd_alt,
+                                stdout=asyncio.subprocess.PIPE,
+                                stderr=asyncio.subprocess.PIPE
+                            ),
+                            timeout=90.0
                         )
-                        
-                        stdout_alt, stderr_alt = await result_alt.communicate()
+
+                        stdout_alt, stderr_alt = await asyncio.wait_for(
+                            result_alt.communicate(),
+                            timeout=90.0
+                        )
                         
                         if result_alt.returncode == 0:
                             logger.info("✅ Alternative yt-dlp configuration succeeded!")
@@ -596,13 +630,30 @@ class YouTubeExtractMCP:
                 "available_languages": available_languages
             }
             
+        except asyncio.TimeoutError:
+            error_msg = "Transcription extraction timed out after 90 seconds. Video may be unavailable, geo-restricted, or too slow to respond."
+            logger.error(error_msg)
+            logger.info("🔄 Attempting fallback with youtube-transcript-api...")
+
+            # Try fallback method even after timeout
+            try:
+                fallback_result = await self._extract_transcription_fallback(url, language, include_timestamps)
+                return fallback_result
+            except Exception as fallback_e:
+                return {
+                    "text": "",
+                    "language": "error",
+                    "status": "timeout_and_fallback_failed",
+                    "primary_error": error_msg,
+                    "fallback_error": str(fallback_e)
+                }
         except Exception as e:
             logger.warning(f"yt-dlp transcription extraction failed: {e}")
             logger.info("🔄 Attempting fallback with youtube-transcript-api...")
-            
+
             # Try fallback method before giving up
             fallback_result = await self._extract_transcription_fallback(url, language, include_timestamps)
-            
+
             # If fallback also fails, return original error with fallback info
             if fallback_result.get("status") == "fallback_failed":
                 return {
@@ -612,7 +663,7 @@ class YouTubeExtractMCP:
                     "primary_error": str(e),
                     "fallback_error": fallback_result.get("error", "Unknown fallback error")
                 }
-            
+
             # Fallback succeeded, return its result
             return fallback_result
         finally:

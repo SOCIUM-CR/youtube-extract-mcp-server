@@ -2,8 +2,8 @@
   "manifest_version": "0.3",
   "name": "youtube-extract-mcp",
   "display_name": "YouTube Transcript Extractor",
-  "version": "1.0.9",
-  "description": "Robust YouTube transcription extraction with triple-fallback system. Supports videos and playlists with automatic language detection.",
+  "version": "1.0.10",
+  "description": "Robust YouTube transcription extraction with triple-fallback system and timeout handling. Supports videos and playlists with automatic language detection.",
   "author": {
     "name": "SOCIUM-CR",
     "email": "contact@socium.cr",
